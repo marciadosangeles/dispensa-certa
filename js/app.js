@@ -527,7 +527,7 @@
         '<p>Certificamos que</p><p class="cert-nome" id="cert-nome">&nbsp;</p>' +
         '<p>concluiu os ' + DC.modulos.length + ' módulos do curso <b>Dispensa Certa: SNCR e RDC nº 1.000/2025 na farmácia</b>, com carga estimada de ' + minutos + ' minutos e ' + soma[0] + ' acertos em ' + soma[1] + ' questões.</p>' +
         '<p class="cert-data">' + esc(data) + '</p>' +
-        '<p class="cert-rodape">Material educativo de autoria de Márcia dos Angeles. Não substitui certificação oficial.</p>' +
+        '<p class="cert-rodape">Material educativo de autoria de Márcia dos Angeles Luna Leite. Não substitui certificação oficial.</p>' +
       '</section>' +
       '<div class="acoes nao-imprime"><button class="botao" type="button" id="imprimir">Imprimir ou salvar em PDF</button><a class="botao fantasma" href="#inicio">Voltar aos módulos</a></div>';
     var campo = document.getElementById("nome-cert"), alvo = document.getElementById("cert-nome");

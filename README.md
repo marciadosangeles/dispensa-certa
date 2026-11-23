@@ -93,7 +93,7 @@ GitHub Pages, a partir da branch `main`, pasta raiz (*Settings → Pages*).
 
 ## Créditos
 
-Autoria: **Márcia dos Angeles** ([github.com/marciadosangeles](https://github.com/marciadosangeles)). O desenvolvimento teve apoio de inteligência artificial (Claude, da Anthropic), e o conteúdo foi conferido nas fontes acima.
+Autoria: **Márcia dos Angeles Luna Leite** ([github.com/marciadosangeles](https://github.com/marciadosangeles)). O desenvolvimento teve apoio de inteligência artificial (Claude, da Anthropic), e o conteúdo foi conferido nas fontes acima.
 
 Licença: MIT (arquivo `LICENSE`).
 
