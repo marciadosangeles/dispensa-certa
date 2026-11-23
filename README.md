@@ -89,4 +89,6 @@ GitHub Pages, a partir da branch `main`, pasta raiz (*Settings → Pages*).
 
 Autoria: **Márcia dos Angeles** ([github.com/marciadosangeles](https://github.com/marciadosangeles)). O desenvolvimento teve apoio de inteligência artificial (Claude, da Anthropic), e o conteúdo foi conferido nas fontes acima.
 
+Licença: MIT (arquivo `LICENSE`).
+
 Este é um material educativo: não substitui a RDC nº 1.000/2025, a RDC nº 1.046/2026, a Portaria SVS/MS nº 344/1998 nem as orientações da Vigilância Sanitária local.
