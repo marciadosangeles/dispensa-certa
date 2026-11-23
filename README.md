@@ -62,11 +62,17 @@ Nunca há envio quando o site é aberto como arquivo local (`file://`) ou em `lo
 
 - **GoatCounter** (código `marciadosangeles`, sem cookies) conta as visitas e os eventos `modulo_inicio`, `modulo_fim`, `resposta`, `pausa_feita`, `pausa_pulada` e `certificado`, com os caminhos `dispensa-certa/<evento>/<modulo>`.
 - **Contador do rodapé:** lê `https://marciadosangeles.goatcounter.com/counter/<caminho>.json`. Para funcionar, ative no GoatCounter: *Settings → Allow adding visitor counts on your website*.
-- **Planilha Google:** uma linha por evento, com as colunas `data_hora, evento, sessao, modulo, item, acertou, valor, duracao_s, aparelho, tema, versao`.
-  - `sessao` é um código aleatório gerado por aba do navegador.
-  - `aparelho` registra só "celular" ou "computador".
-  - Não há nome, e-mail, fotos, IP gravado nem localização.
-- Na primeira visita aparece um aviso de dados anônimos com o botão **Não enviar meus dados**. A escolha pode ser mudada a qualquer momento em **Privacidade**, no rodapé.
+- **Planilha Google:** uma linha por evento, na aba **Registros**.
+  - **Eventos:** `visita`, `perfil`, `modulo_inicio`, `resposta`, `abandono`, `modulo_fim`, `pausa_feita`, `pausa_pulada`, `certificado` e `linha_teste`.
+  - **Colunas:** `data_hora, evento, sessao, modulo, item, acertou, opcao, tempo_s, etapa, valor, duracao_s, origem, perfil, tipo_farmacia, uf, aparelho, tema, versao`.
+  - `opcao`: alternativa escolhida (ex.: "B: Até 3 de março de 2027", "dispensar", "falso", "SNGPC"; na ordenação, a ordem enviada, como "1-2-3-4-5-6").
+  - `tempo_s`: segundos entre a pergunta aparecer e a resposta.
+  - `abandono`: registrado quando a pessoa sai de um módulo antes de concluir (volta ao início, troca de módulo ou fecha a página). `etapa` diz onde parou (ex.: "pergunta 2", "caso 5") e `duracao_s` quanto tempo ficou.
+  - `origem`: valor de `?origem=` no link (ex.: `?origem=whatsapp`) ou, sem ele, o site que trouxe a pessoa (google, instagram, facebook etc.). Visitas sem site de origem, comuns no WhatsApp, aparecem como "direto". Para medir a divulgação, compartilhe links como `https://marciadosangeles.github.io/dispensa-certa/?origem=whatsapp`.
+  - `perfil`, `tipo_farmacia` e `uf`: respostas opcionais do cartão "Conte um pouco sobre você" (quem é, onde atua e estado). Ficam vazias se a pessoa pular. Podem ser alteradas em **Privacidade**.
+  - `sessao` é um código aleatório gerado por aba do navegador; `aparelho` registra só "celular" ou "computador".
+  - Não há nome, e-mail, fotos, IP gravado nem localização. O nome digitado no certificado nunca é enviado.
+- Na primeira visita aparece um aviso de dados anônimos com o botão **Não enviar meus dados**. A escolha pode ser mudada a qualquer momento em **Privacidade**, no rodapé, que também lista tudo o que é registrado.
 
 ### Instalar a planilha
 
@@ -79,7 +85,7 @@ Nunca há envio quando o site é aberto como arquivo local (`file://`) ou em `lo
 5. Cole essa URL em `planilhaURL` no `config.js`.
 6. Abra o site com `?diagnostico` e clique em **Enviar linha de teste à planilha**. Deve aparecer uma linha `linha_teste` na aba **Registros**, criada automaticamente com o cabeçalho.
 
-Se você alterar o código do Apps Script, use **Implantar → Gerenciar implantações → Editar → Nova versão** para manter a mesma URL.
+Se você alterar o código do Apps Script, use **Implantar → Gerenciar implantações → lápis → Versão: Nova versão** para manter a mesma URL. Quando as colunas mudam, o script renomeia a aba antiga ("Registros (versão anterior …)") e cria uma nova aba **Registros** com o cabeçalho atualizado, sem perder dados.
 
 ## Publicação
 

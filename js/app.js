@@ -22,7 +22,30 @@
   var progresso = ler("dc-progresso", {});
   function salvarProgresso(id, dados) { progresso[id] = dados; gravar("dc-progresso", progresso); }
   function modulo(id) { return DC.modulos.filter(function (m) { return m.id === id; })[0]; }
-  function focar() { app.focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: "auto" }); }
+  var tq = Date.now(); /* início da pergunta atual, para medir o tempo de resposta */
+  function focar() { tq = Date.now(); app.focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: "auto" }); }
+  function letra(i, op) { return "ABCDE"[i] + ": " + op[i]; }
+
+  /* Resposta: acrescenta o tempo desde que a pergunta apareceu. */
+  function resposta(dados) {
+    dados.tempo_s = Math.round((Date.now() - tq) / 1000);
+    tq = Date.now();
+    A.evento("resposta", dados);
+  }
+
+  /* Abandono: guarda onde a pessoa está; se sair antes de concluir, registra. */
+  var emCurso = null;
+  function curso(id, etapa) {
+    if (!emCurso || emCurso.modulo !== id) emCurso = { modulo: id, t0: Date.now() };
+    emCurso.etapa = etapa;
+  }
+  function cursoFim() { emCurso = null; }
+  function abandono(beacon) {
+    if (!emCurso) return;
+    A.evento("abandono", { modulo: emCurso.modulo, etapa: emCurso.etapa, duracao_s: Math.round((Date.now() - emCurso.t0) / 1000) }, beacon);
+    emCurso = null;
+  }
+  window.addEventListener("pagehide", function () { abandono(true); });
   function segundos(t0) { return Math.round((Date.now() - t0) / 1000); }
 
   /* ---------- tema ---------- */
@@ -58,6 +81,7 @@
         '</div>' +
         desenhoReceita() +
       '</section>' +
+      cartaoPerfil() +
       '<section aria-labelledby="t-mod">' +
         '<div class="cab-lista"><h2 id="t-mod">Módulos</h2><span class="miudo">' + feitos + ' de ' + prontos.length + ' disponíveis concluídos</span></div>' +
         '<div class="barra" aria-hidden="true"><div style="width:' + (prontos.length ? feitos / prontos.length * 100 : 0) + '%"></div></div>' +
@@ -65,7 +89,43 @@
       '</section>' +
       (todosFeitos() ? '<section class="cartao destaque"><h2>Você concluiu todos os módulos</h2><p>Gere seu certificado de conclusão para imprimir ou salvar em PDF.</p>' +
         '<div class="acoes"><a class="botao" href="#certificado">Ver meu certificado</a></div></section>' : "");
+    ligarPerfil();
   }
+  /* Perfil opcional: aparece até a pessoa responder ou recusar. */
+  var UFS = "AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO".split(" ");
+  var QUEM = ["Farmacêutico(a)", "Estudante em estágio", "Atendente ou balconista", "Outro"];
+  var FARM = ["Farmácia ou drogaria privada", "Farmácia pública (SUS)", "Farmácia hospitalar", "Farmácia de manipulação", "Não trabalho em farmácia"];
+  function opcoes(lista) {
+    return '<option value="">Prefiro não dizer</option>' + lista.map(function (o) { return '<option>' + esc(o) + '</option>'; }).join("");
+  }
+  function cartaoPerfil() {
+    if (ler("dc-perfil", null)) return "";
+    return '<section class="cartao perfil" id="perfil" aria-labelledby="t-perfil">' +
+      '<h2 id="t-perfil">Conte um pouco sobre você (opcional)</h2>' +
+      '<p class="miudo">As respostas ajudam a adaptar o conteúdo. São anônimas e você pode pular.</p>' +
+      '<div class="campos">' +
+      '<label for="pf-quem">Você é<select id="pf-quem">' + opcoes(QUEM) + '</select></label>' +
+      '<label for="pf-farm">Onde atua<select id="pf-farm">' + opcoes(FARM) + '</select></label>' +
+      '<label for="pf-uf">Estado<select id="pf-uf">' + opcoes(UFS) + '</select></label>' +
+      '</div><div class="acoes"><button class="botao" type="button" id="pf-salvar">Salvar</button>' +
+      '<button class="botao fantasma" type="button" id="pf-pular">Prefiro não responder</button></div></section>';
+  }
+  function ligarPerfil() {
+    var b = document.getElementById("pf-salvar"); if (!b) return;
+    b.onclick = function () {
+      var v = { quem: document.getElementById("pf-quem").value, farmacia: document.getElementById("pf-farm").value, uf: document.getElementById("pf-uf").value };
+      gravar("dc-perfil", v);
+      A.evento("perfil", {});
+      fecharPerfil("Obrigado! Suas respostas foram salvas.");
+    };
+    document.getElementById("pf-pular").onclick = function () { gravar("dc-perfil", { recusou: true }); fecharPerfil(""); };
+  }
+  function fecharPerfil(msg) {
+    var c = document.getElementById("perfil");
+    if (msg) { c.innerHTML = '<p class="miudo" role="status">' + esc(msg) + '</p>'; setTimeout(function () { c.remove(); }, 2500); }
+    else c.remove();
+  }
+
   function cartaoModulo(m) {
     var p = progresso[m.id];
     var estado = !m.pronto ? "Em breve" : (p && p.feito ? "Concluído" : "Começar");
@@ -107,6 +167,7 @@
     A.evento("modulo_inicio", { modulo: m.id });
 
     function intro() {
+      curso(m.id, "introdução");
       app.innerHTML = cabecalho(m, 1, 3) +
         '<p class="lead">Cinco tipos de receita podem chegar ao balcão de controlados. Cada um tem um caminho de conferência diferente até a entrega.</p>' +
         '<div class="cartao"><h2>Nesta sessão você vai</h2><ul class="lista">' +
@@ -118,6 +179,7 @@
     }
 
     function atividade() {
+      curso(m.id, "triagem");
       app.innerHTML = cabecalho(m, 2, 3) +
         '<h2 class="h2">Que receita chegou ao balcão?</h2>' +
         '<p>Toque em cada tipo para ver o caminho. Explore os cinco para continuar.</p>' +
@@ -159,6 +221,7 @@
 
     function pergunta() {
       var q = DC.fixacaoTriagem[qi];
+      curso(m.id, "pergunta " + (qi + 1));
       app.innerHTML = cabecalho(m, 3, 3) +
         '<p class="miudo">Pergunta ' + (qi + 1) + ' de ' + DC.fixacaoTriagem.length + '</p>' +
         '<fieldset class="questao"><legend>' + esc(q.p) + '</legend>' +
@@ -173,7 +236,7 @@
           if (+x.dataset.i === q.c) x.classList.add("certa");
           else if (x === b) x.classList.add("errada");
         });
-        A.evento("resposta", { modulo: m.id, item: q.id, acertou: certo });
+        resposta({ modulo: m.id, item: q.id, acertou: certo, opcao: letra(i, q.op) });
         var ultima = qi === DC.fixacaoTriagem.length - 1;
         document.getElementById("retorno").innerHTML =
           '<div class="retorno ' + (certo ? "ok" : "nao") + '"><b>' + (certo ? "Isso mesmo." : "Não é bem assim.") + '</b> ' + esc(q.e) + '</div>' +
@@ -187,6 +250,7 @@
 
     function fim() {
       var total = DC.fixacaoTriagem.length, dur = segundos(t0);
+      cursoFim();
       salvarProgresso(m.id, { feito: true, acertos: acertos, total: total, em: new Date().toISOString() });
       A.evento("modulo_fim", { modulo: m.id, valor: acertos + "/" + total, duracao_s: dur });
       telaFim(m, acertos, total, "Você reconheceu os cinco tipos de receita e o caminho de cada um.");
@@ -201,6 +265,7 @@
     A.evento("modulo_inicio", { modulo: m.id });
 
     function intro() {
+      curso(m.id, "introdução");
       app.innerHTML = cabecalho(m, 1, 2) +
         '<p class="lead">Oito situações do dia a dia. Leia a receita e decida: você dispensaria?</p>' +
         '<div class="cartao"><h2>Lembre antes de começar</h2><ul class="lista">' +
@@ -214,6 +279,7 @@
 
     function caso() {
       var c = DC.casos[i];
+      curso(m.id, "caso " + (i + 1));
       app.innerHTML = cabecalho(m, 2, 2) +
         '<div class="placar"><span>Caso ' + (i + 1) + ' de ' + DC.casos.length + '</span><span>' + acertos + ' acerto' + (acertos === 1 ? "" : "s") + '</span></div>' +
         '<div class="barra" aria-hidden="true"><div style="width:' + (i / DC.casos.length * 100) + '%"></div></div>' +
@@ -227,7 +293,7 @@
         if (certo) acertos++;
         app.querySelectorAll(".decide button").forEach(function (x) { x.disabled = true; });
         b.classList.add(certo ? "certa" : "errada");
-        A.evento("resposta", { modulo: m.id, item: c.id, acertou: certo });
+        resposta({ modulo: m.id, item: c.id, acertou: certo, opcao: b.dataset.r === "1" ? "dispensar" : "não dispensar" });
         var ultimo = i === DC.casos.length - 1;
         document.getElementById("retorno").innerHTML =
           '<div class="retorno ' + (certo ? "ok" : "nao") + '"><b>' + (certo ? "Certo." : "Não é bem assim.") + '</b> ' +
@@ -242,6 +308,7 @@
 
     function fim() {
       var total = DC.casos.length, dur = segundos(t0);
+      cursoFim();
       salvarProgresso(m.id, { feito: true, acertos: acertos, total: total, em: new Date().toISOString() });
       A.evento("modulo_fim", { modulo: m.id, valor: acertos + "/" + total, duracao_s: dur });
       telaFim(m, acertos, total, acertos >= 6 ? "Você está tomando boas decisões no balcão." : "Vale rever a triagem da receita e tentar de novo.");
@@ -257,6 +324,7 @@
     A.evento("modulo_inicio", { modulo: m.id });
 
     function intro() {
+      curso(m.id, "introdução");
       app.innerHTML = cabecalho(m, 1, N) +
         '<p class="lead">' + esc(r.lead) + '</p>' +
         '<div class="cartao"><h2>Nesta sessão você vai</h2><ul class="lista">' +
@@ -270,6 +338,7 @@
       k++;
       if (k >= r.etapas.length) return fim();
       var e = r.etapas[k];
+      curso(m.id, "etapa " + (k + 2) + ": " + e.tipo);
       var topo = cabecalho(m, k + 2, N) + (e.titulo ? '<h2 class="h2">' + esc(e.titulo) + '</h2>' : "") + (e.texto ? '<p>' + esc(e.texto) + '</p>' : "");
       ({ leitura: leitura, classificar: classificar, vf: vf, ordenar: ordenar, checklist: checklist, perguntas: perguntas })[e.tipo](e, topo);
       focar();
@@ -311,7 +380,7 @@
           if (+x.dataset.g === it[2]) x.classList.add("certa"); else if (x === b) x.classList.add("errada");
         });
         li.querySelector(".nota").textContent = certo ? "Certo." : "A resposta é: " + e.grupos[it[2]] + ".";
-        A.evento("resposta", { modulo: m.id, item: it[0], acertou: certo });
+        resposta({ modulo: m.id, item: it[0], acertou: certo, opcao: e.grupos[+b.dataset.g] });
         if (feitos === e.itens.length) document.getElementById("seguir").disabled = false;
       });
     }
@@ -320,6 +389,7 @@
       var i = 0;
       function uma() {
         var q = e.lista[i];
+        curso(m.id, "afirmação " + (i + 1));
         app.innerHTML = topo + '<p class="miudo">Afirmação ' + (i + 1) + ' de ' + e.lista.length + '</p>' +
           '<article class="receita papel afirma"><p>' + esc(q.p) + '</p></article>' +
           '<div class="acoes decide"><button class="botao" type="button" id="v" data-r="1">Verdadeiro</button>' +
@@ -330,7 +400,7 @@
           total++; if (certo) acertos++;
           app.querySelectorAll(".decide button").forEach(function (x) { x.disabled = true; });
           b.classList.add(certo ? "certa" : "errada");
-          A.evento("resposta", { modulo: m.id, item: q.id, acertou: certo });
+          resposta({ modulo: m.id, item: q.id, acertou: certo, opcao: b.dataset.r === "1" ? "verdadeiro" : "falso" });
           var ultima = i === e.lista.length - 1;
           document.getElementById("retorno").innerHTML =
             '<div class="retorno ' + (certo ? "ok" : "nao") + '"><b>' + (certo ? "Certo." : "Não é bem assim.") + '</b> É ' + (q.v ? "verdadeiro" : "falso") + '. ' + esc(q.e) + '</div>' +
@@ -364,7 +434,7 @@
             conferido = true;
             var tudo = ordem.every(function (n, pos) { return n === pos; });
             total++; if (tudo) acertos++;
-            A.evento("resposta", { modulo: m.id, item: "ordem", acertou: tudo });
+            resposta({ modulo: m.id, item: "ordem", acertou: tudo, opcao: ordem.map(function (n) { return n + 1; }).join("-") });
             desenhar();
           };
           app.querySelector(".ordem").addEventListener("click", function (ev) {
@@ -399,6 +469,7 @@
       var i = 0;
       function uma() {
         var q = e.lista[i];
+        curso(m.id, "pergunta " + (i + 1));
         app.innerHTML = topo + '<p class="miudo">Pergunta ' + (i + 1) + ' de ' + e.lista.length + '</p>' +
           '<fieldset class="questao"><legend>' + esc(q.p) + '</legend>' +
           q.op.map(function (o, n) { return '<button type="button" class="opcao-q" id="op-' + n + '" data-i="' + n + '">' + esc(o) + '</button>'; }).join("") +
@@ -411,7 +482,7 @@
             x.disabled = true;
             if (+x.dataset.i === q.c) x.classList.add("certa"); else if (x === b) x.classList.add("errada");
           });
-          A.evento("resposta", { modulo: m.id, item: q.id, acertou: certo });
+          resposta({ modulo: m.id, item: q.id, acertou: certo, opcao: letra(+b.dataset.i, q.op) });
           var ultima = i === e.lista.length - 1;
           document.getElementById("retorno").innerHTML =
             '<div class="retorno ' + (certo ? "ok" : "nao") + '"><b>' + (certo ? "Isso mesmo." : "Não é bem assim.") + '</b> ' + esc(q.e) + '</div>' +
@@ -426,6 +497,7 @@
 
     function fim() {
       var dur = segundos(t0);
+      cursoFim();
       salvarProgresso(m.id, { feito: true, acertos: acertos, total: total, em: new Date().toISOString() });
       A.evento("modulo_fim", { modulo: m.id, valor: acertos + "/" + total, duracao_s: dur });
       telaFim(m, acertos, total, r.fim);
@@ -507,6 +579,7 @@
   /* ---------- rotas ---------- */
   function rota(forcar, hash) {
     clearInterval(timer);
+    abandono(false);
     var h = (hash === undefined ? location.hash : hash).replace("#", "");
     if (h === "m-triagem") return moduloTriagem();
     if (h === "m-casos") return moduloCasos();
@@ -534,6 +607,11 @@
     d.addEventListener("click", function (e) { if (e.target === d || e.target.hasAttribute("data-fecha")) d.close(); });
   });
 
+  document.getElementById("refazer-perfil").addEventListener("click", function () {
+    try { localStorage.removeItem("dc-perfil"); } catch (e) {}
+    document.getElementById("dlg-privacidade").close();
+    if (location.hash === "#inicio") rota(true); else location.hash = "#inicio";
+  });
   var opt = document.getElementById("opt-out"), aviso = document.getElementById("aviso-dados");
   opt.checked = A.optOut();
   opt.addEventListener("change", function () { A.setOptOut(opt.checked); diagnostico(); });

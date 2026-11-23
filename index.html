@@ -62,7 +62,7 @@
 
 <div class="aviso" id="aviso-dados" hidden>
   <div class="coluna aviso-linha">
-    <p>Este site registra dados de uso anônimos (módulos feitos e respostas), sem nome, e-mail, fotos ou localização, para melhorar o conteúdo.</p>
+    <p>Este site registra dados de uso anônimos (módulos feitos, respostas e de onde veio a visita), sem nome, e-mail, fotos ou localização, para melhorar o conteúdo.</p>
     <div class="aviso-botoes">
       <button type="button" class="botao" id="aviso-ok">Entendi</button>
       <button type="button" class="botao fantasma" id="aviso-nao">Não enviar meus dados</button>
@@ -92,9 +92,16 @@
 
 <dialog id="dlg-privacidade" aria-labelledby="t-priv">
   <h2 id="t-priv">Privacidade</h2>
-  <p>Registramos apenas dados anônimos: quais módulos foram feitos, respostas certas ou erradas, duração e se o acesso foi pelo celular ou computador. Cada visita recebe um código aleatório que não identifica você.</p>
-  <p>Não coletamos nome, e-mail, fotos nem localização. A contagem de visitas não usa cookies.</p>
-  <p>Seu progresso fica salvo só neste aparelho.</p>
+  <p>Registramos apenas dados anônimos para melhorar o conteúdo:</p>
+  <ul>
+    <li>módulos iniciados, concluídos ou interrompidos (e em que etapa);</li>
+    <li>a alternativa escolhida em cada pergunta e o tempo para responder;</li>
+    <li>de onde veio a visita (por exemplo, WhatsApp ou Google), se é celular ou computador e o tema de cores;</li>
+    <li>se você quiser responder: se é farmacêutico, estudante ou atendente, o tipo de farmácia e o estado (UF).</li>
+  </ul>
+  <p>Cada visita recebe um código aleatório que não identifica você. Não coletamos nome, e-mail, fotos nem localização. A contagem de visitas não usa cookies.</p>
+  <p>Seu progresso e suas respostas de perfil ficam salvos neste aparelho.</p>
+  <p><button type="button" class="link" id="refazer-perfil">Alterar minhas respostas de perfil</button></p>
   <label class="opcao"><input type="checkbox" id="opt-out"> Não enviar meus dados</label>
   <button type="button" class="botao" data-fecha>Fechar</button>
 </dialog>

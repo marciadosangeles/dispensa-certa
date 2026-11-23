@@ -9,5 +9,5 @@
 window.DC_CONFIG = {
   goatcounter: "marciadosangeles",
   planilhaURL: "https://script.google.com/macros/s/AKfycbz-g-IVANJ2YEHqVT66hiMOMneL9NMkdINsVVGQMJuJTu6z5WvhxqN_fApQCCyM3jmAIg/exec",
-  versao: "1.0.0"
+  versao: "1.1.0"
 };

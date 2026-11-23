@@ -48,6 +48,36 @@
       return s;
     } catch (e) { return "sem-sessao"; }
   }
+  /* Origem da visita: ?origem=... no link (ex.: ?origem=whatsapp) ou o site que trouxe a pessoa.
+     Calculada uma vez por sessão. WhatsApp e apps costumam não informar o site: aparecem como "direto". */
+  function origem() {
+    try {
+      var o = sessionStorage.getItem("dc-origem");
+      if (o) return o;
+      var p = (q.get("origem") || q.get("utm_source") || "").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 30);
+      if (!p) {
+        var h = "";
+        try { h = document.referrer ? new URL(document.referrer).hostname : ""; } catch (e) {}
+        if (!h || h === location.hostname) p = "direto";
+        else if (/whatsapp|wa\.me/.test(h)) p = "whatsapp";
+        else if (/instagram/.test(h)) p = "instagram";
+        else if (/facebook|fb\./.test(h)) p = "facebook";
+        else if (/linkedin|lnkd/.test(h)) p = "linkedin";
+        else if (/(^|\.)t\.co$|twitter|x\.com/.test(h)) p = "x";
+        else if (/google\./.test(h)) p = "google";
+        else if (/bing\.|duckduckgo|yahoo/.test(h)) p = "outra busca";
+        else if (/github/.test(h)) p = "github";
+        else p = "outro site";
+      }
+      sessionStorage.setItem("dc-origem", p);
+      return p;
+    } catch (e) { return "desconhecida"; }
+  }
+  /* Perfil declarado pela pessoa (opcional), guardado só no aparelho. */
+  function perfil() {
+    try { return JSON.parse(localStorage.getItem("dc-perfil") || "{}"); } catch (e) { return {}; }
+  }
+
   function aparelho() { return window.matchMedia("(max-width: 700px)").matches ? "celular" : "computador"; }
   function tema() {
     var t = document.documentElement.dataset.theme;
@@ -84,6 +114,13 @@
       acertou: dados.acertou === undefined ? "" : (dados.acertou ? "sim" : "nao"),
       valor: dados.valor === undefined ? "" : String(dados.valor),
       duracao_s: dados.duracao_s === undefined ? "" : dados.duracao_s,
+      opcao: dados.opcao || "",
+      tempo_s: dados.tempo_s === undefined ? "" : dados.tempo_s,
+      etapa: dados.etapa || "",
+      origem: origem(),
+      perfil: perfil().quem || "",
+      tipo_farmacia: perfil().farmacia || "",
+      uf: perfil().uf || "",
       aparelho: aparelho(),
       tema: tema(),
       versao: cfg.versao || ""
@@ -139,6 +176,7 @@
     modo: modo, local: local, bloqueios: bloqueios, podeEnviar: podeEnviar,
     optOut: optOut, setOptOut: function (v) { setOptOut(v); if (!v) carregarGoatCounter(); },
     evento: evento, linhaDeTeste: linhaDeTeste, contador: contador,
-    registro: function () { return registro; }, config: cfg, iniciar: carregarGoatCounter
+    registro: function () { return registro; }, config: cfg, iniciar: carregarGoatCounter,
+    origem: origem, perfil: perfil
   };
 })();
