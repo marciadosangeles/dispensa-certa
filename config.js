@@ -9,5 +9,5 @@
 window.DC_CONFIG = {
   goatcounter: "marciadosangeles",
   planilhaURL: "",
-  versao: "0.1.0"
+  versao: "1.0.0"
 };

@@ -8,16 +8,16 @@ Site: https://marciadosangeles.github.io/dispensa-certa/
 
 São seis módulos de cerca de 5 minutos. Cada um traz uma explicação curta, uma atividade e uma pergunta de fixação, e termina com uma pausa de 1 minuto para movimento (que pode ser pulada).
 
-| Nº | Módulo | Situação |
+| Nº | Módulo | Atividade |
 |---|---|---|
-| 1 | O que mudou: SNCR x SNGPC e prazos | em produção |
-| 2 | Triagem da receita: 5 tipos e o caminho de conferência de cada um | disponível |
-| 3 | Regras de conferência | em produção |
-| 4 | Acesso ao SNCR: Cadastro Anvisa, perfis, AFE e CNES | em produção |
-| 5 | Casos de balcão: 8 situações, “dispensaria?” | disponível |
-| 6 | Checklist do POP | em produção |
+| 1 | O que mudou | Linha do tempo, classificar frases em SNCR, SNGPC ou os dois, 3 perguntas |
+| 2 | Triagem da receita | Explorar os 5 tipos de receita e o caminho de conferência de cada um, 4 perguntas |
+| 3 | Regras de conferência | 9 afirmações de verdadeiro ou falso e resumo para consulta |
+| 4 | Acesso ao SNCR | Requisitos (AFE, CNES, gov.br, perfis), ordenar os passos de liberação, 4 perguntas |
+| 5 | Casos de balcão | 8 situações: dispensaria ou não? |
+| 6 | Checklist do POP | 10 itens para preparar a farmácia, 3 perguntas |
 
-O progresso fica salvo só no aparelho de quem usa (`localStorage`).
+O progresso e o checklist ficam salvos só no aparelho de quem usa (`localStorage`). Ao concluir os seis módulos, aparece um **certificado de conclusão** para imprimir ou salvar em PDF. O nome digitado no certificado fica só na tela: não é salvo nem enviado.
 
 ## Fontes do conteúdo
 
@@ -26,18 +26,18 @@ Fatos conferidos em 23/11/2026. As regras estão em transição, então reveja o
 - **Prazo de transição até 3/3/2027 (RDC nº 1.046/2026):** CFF, [Anvisa prorroga até 3/3/2027 prazo para adaptação ao SNCR](https://site.cff.org.br/noticia/Noticias-gerais/30/10/2026/anvisa-prorroga-ate-3-3-2027-prazo-para-adaptacao-ao-sncr) (30/10/2026). Também a nota sobre a publicação no DOU de 3/11/2026, que altera o art. 18 da RDC nº 1.000/2025 ([Atlas Público](https://atlaspublico.com.br/noticias/anvisa-prorroga-ate-3-de-marco-de-2027-a-dispensa-de-97141)).
 - **O que é o SNCR, o papel da farmácia, a receita física e a relação com o SNGPC:** CFF, [SNCR: o que muda para farmácias e drogarias](https://site.cff.org.br/noticia/Noticias-gerais/21/05/2026/sncr-o-que-muda-para-farmacias-e-drogarias-com-o-novo-sistema-de-controle-de-receitas) (21/05/2026).
 - **Cartilha oficial:** Anvisa, [SNCR e receituários controlados: cartilha para farmácias](https://www.gov.br/anvisa/pt-br/assuntos/medicamentos/controlados/sncr/cartilha_sncr_farmacias_vf.pdf/@@display-file/file).
-- **Acesso, perfis e Cadastro Anvisa:** Anvisa, [Cadastro Anvisa e acesso ao SNCR: perguntas e respostas](https://www.gov.br/anvisa/pt-br/sistemas/cadastro/arquivos/perguntas_respostas_sncr_2026.pdf/@@display-file/file) (outubro/2026).
+- **Acesso, perfis e Cadastro Anvisa:** passo a passo e erros comuns em [Apogeu](https://apogeu.tech/blog/como-acessar-sncr-perfis-cadastro-anvisa); Anvisa, [Cadastro Anvisa e acesso ao SNCR: perguntas e respostas](https://www.gov.br/anvisa/pt-br/sistemas/cadastro/arquivos/perguntas_respostas_sncr_2026.pdf/@@display-file/file) (outubro/2026).
 - **Regras práticas de conferência:** ICTQ, [CRF-GO e CRF-SP esclarecem pontos críticos do SNCR](https://ictq.com.br/farmacia-clinica/5186-diretoras-do-crf-go-e-crf-sp-esclarecem-pontos-criticos-do-sncr-para-a-rotina-do-farmaceutico). Fonte para: gov.br x ICP-Brasil, foto de receita, 14 dígitos, CPF, modelos antigos e GLP-1 em papel.
-- **Situação “autorizada” e “utilizada”, entrega parcelada e cancelamento em cerca de 30 minutos:** resumo da cartilha da Anvisa em [Grupo AMR Saúde](https://www.grupoamrsaude.com.br/post/sncr-na-farm%C3%A1cia-o-prazo-mudou-o-que-o-dono-precisa-fazer-agora) e no [Correio Braziliense](https://www.correiobraziliense.com.br/cbradar/receita-eletronica-de-remedio-controlado-e-de-antibiotico-passa-a-exigir-a-numeracao-do-sistema-sncr-da-anvisa-no-fim-de-outubro-de-2026-depois-de-um-mes-de-transicao-e-a-receita-em-papel-fica-fora/).
+- **Situação “autorizada” e “utilizada”, entrega parcelada, cancelamento em cerca de 30 minutos, guarda do arquivo original e acesso em todos os turnos:** resumo da cartilha da Anvisa em [Grupo AMR Saúde](https://www.grupoamrsaude.com.br/post/sncr-na-farm%C3%A1cia-o-prazo-mudou-o-que-o-dono-precisa-fazer-agora) e no [Correio Braziliense](https://www.correiobraziliense.com.br/cbradar/receita-eletronica-de-remedio-controlado-e-de-antibiotico-passa-a-exigir-a-numeracao-do-sistema-sncr-da-anvisa-no-fim-de-outubro-de-2026-depois-de-um-mes-de-transicao-e-a-receita-em-papel-fica-fora/).
 - **Validação de assinatura digital:** Instituto Nacional de Tecnologia da Informação, [VALIDAR](https://validar.iti.gov.br/).
 
 ## Estrutura
 
 ```
-index.html             página única (rotas por #hash: #inicio, #m-triagem, #m-casos)
+index.html             página única (rotas por #hash: #inicio, #m-<módulo>, #certificado)
 config.js              códigos do GoatCounter e da planilha
 css/style.css          visual, modo claro e escuro
-js/conteudo.js         textos, tipos de receita, perguntas e casos
+js/conteudo.js         textos, perguntas, casos e roteiros dos módulos
 js/analytics.js        regras de envio de dados de uso
 js/app.js              telas, progresso, pausas, rodapé e diagnóstico
 img/                   ícones e imagem de compartilhamento (1200×630)
@@ -52,7 +52,7 @@ Acrescente ao endereço:
 
 | Modo | Exemplo | O que faz |
 |---|---|---|
-| `?rapido` | `.../dispensa-certa/?rapido` | Libera o botão de continuar da triagem sem explorar os 5 tipos e reduz a pausa para 3 s. Não envia dados. |
+| `?rapido` | `.../dispensa-certa/?rapido` | Libera os botões de continuar sem fazer as atividades, abre o certificado sem concluir os módulos e reduz a pausa para 3 s. Não envia dados. |
 | `?teste` | `.../dispensa-certa/?teste` | Uso normal, sem envio de dados. |
 | `?diagnostico` | `.../dispensa-certa/?diagnostico` | Mostra no fim da página a configuração, os motivos de bloqueio e os últimos eventos, com o botão **Enviar linha de teste à planilha**. Eventos automáticos não são enviados nesse modo, só a linha de teste. |
 
@@ -60,7 +60,7 @@ Nunca há envio quando o site é aberto como arquivo local (`file://`) ou em `lo
 
 ## Análise de uso e privacidade
 
-- **GoatCounter** (código `marciadosangeles`, sem cookies) conta as visitas e os eventos `modulo_inicio`, `modulo_fim`, `resposta`, `pausa_feita` e `pausa_pulada`, com os caminhos `dispensa-certa/<evento>/<modulo>`.
+- **GoatCounter** (código `marciadosangeles`, sem cookies) conta as visitas e os eventos `modulo_inicio`, `modulo_fim`, `resposta`, `pausa_feita`, `pausa_pulada` e `certificado`, com os caminhos `dispensa-certa/<evento>/<modulo>`.
 - **Contador do rodapé:** lê `https://marciadosangeles.goatcounter.com/counter/<caminho>.json`. Para funcionar, ative no GoatCounter: *Settings → Allow adding visitor counts on your website*.
 - **Planilha Google:** uma linha por evento, com as colunas `data_hora, evento, sessao, modulo, item, acertou, valor, duracao_s, aparelho, tema, versao`.
   - `sessao` é um código aleatório gerado por aba do navegador.

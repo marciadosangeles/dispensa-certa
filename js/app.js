@@ -1,6 +1,6 @@
 /*
  * Dispensa Certa — aplicação.
- * Rotas pelo hash: #inicio, #m-triagem, #m-casos.
+ * Rotas pelo hash: #inicio, #m-<modulo> (mudancas, triagem, regras, acesso, casos, pop), #certificado.
  * Modos: ?rapido (pausas de 3 s, atividades liberadas, sem envio),
  *        ?teste (sem envio), ?diagnostico (painel técnico, sem envio automático).
  */
@@ -62,7 +62,9 @@
         '<div class="cab-lista"><h2 id="t-mod">Módulos</h2><span class="miudo">' + feitos + ' de ' + prontos.length + ' disponíveis concluídos</span></div>' +
         '<div class="barra" aria-hidden="true"><div style="width:' + (prontos.length ? feitos / prontos.length * 100 : 0) + '%"></div></div>' +
         '<ol class="modulos">' + DC.modulos.map(cartaoModulo).join("") + '</ol>' +
-      '</section>';
+      '</section>' +
+      (todosFeitos() ? '<section class="cartao destaque"><h2>Você concluiu todos os módulos</h2><p>Gere seu certificado de conclusão para imprimir ou salvar em PDF.</p>' +
+        '<div class="acoes"><a class="botao" href="#certificado">Ver meu certificado</a></div></section>' : "");
   }
   function cartaoModulo(m) {
     var p = progresso[m.id];
@@ -248,6 +250,221 @@
     intro();
   }
 
+  /* ---------- Módulos 1, 3, 4 e 6: roteiro em etapas ---------- */
+  function moduloRoteiro(id) {
+    var m = modulo(id), r = DC.roteiros[id], t0 = Date.now(), acertos = 0, total = 0, k = -1;
+    var N = r.etapas.length + 1;
+    A.evento("modulo_inicio", { modulo: m.id });
+
+    function intro() {
+      app.innerHTML = cabecalho(m, 1, N) +
+        '<p class="lead">' + esc(r.lead) + '</p>' +
+        '<div class="cartao"><h2>Nesta sessão você vai</h2><ul class="lista">' +
+        r.itens.map(function (i) { return '<li>' + esc(i) + '</li>'; }).join("") +
+        '<li>fazer uma pausa de 1 minuto no final.</li></ul></div>' +
+        '<div class="acoes"><button class="botao" type="button" id="ir">Começar</button></div>';
+      document.getElementById("ir").onclick = proxima;
+      focar();
+    }
+    function proxima() {
+      k++;
+      if (k >= r.etapas.length) return fim();
+      var e = r.etapas[k];
+      var topo = cabecalho(m, k + 2, N) + (e.titulo ? '<h2 class="h2">' + esc(e.titulo) + '</h2>' : "") + (e.texto ? '<p>' + esc(e.texto) + '</p>' : "");
+      ({ leitura: leitura, classificar: classificar, vf: vf, ordenar: ordenar, checklist: checklist, perguntas: perguntas })[e.tipo](e, topo);
+      focar();
+    }
+    function botaoSeguir(liberado) {
+      var ultimo = k === r.etapas.length - 1;
+      return '<div class="acoes"><button class="botao" type="button" id="seguir"' + (liberado || rapido ? "" : " disabled") + '>' +
+        (ultimo ? "Concluir o módulo" : "Continuar") + '</button></div>';
+    }
+    function ligarSeguir() { var b = document.getElementById("seguir"); if (b) b.onclick = proxima; }
+
+    function leitura(e, topo) {
+      var corpo = "";
+      if (e.linha) corpo += '<ol class="tempo">' + e.linha.map(function (l) {
+        return '<li class="' + (l[2] || "") + '"><span class="data">' + esc(l[0]) + '</span><span>' + esc(l[1]) + '</span></li>';
+      }).join("") + '</ol>';
+      if (e.regras) corpo += '<dl class="regras">' + e.regras.map(function (g) {
+        return '<div><dt>' + esc(g[0]) + '</dt><dd>' + esc(g[1]) + '</dd></div>';
+      }).join("") + '</dl>';
+      app.innerHTML = topo + corpo + botaoSeguir(true);
+      ligarSeguir();
+    }
+
+    function classificar(e, topo) {
+      var feitos = 0;
+      app.innerHTML = topo + '<ul class="classes">' + e.itens.map(function (it) {
+        return '<li id="cl-' + it[0] + '"><p>' + esc(it[1]) + '</p><div class="segmentos" role="group" aria-label="Escolha o sistema">' +
+          e.grupos.map(function (g, gi) { return '<button type="button" data-it="' + it[0] + '" data-g="' + gi + '">' + esc(g) + '</button>'; }).join("") +
+          '</div><p class="nota" aria-live="polite"></p></li>';
+      }).join("") + '</ul>' + botaoSeguir(false);
+      ligarSeguir();
+      app.querySelector(".classes").addEventListener("click", function (ev) {
+        var b = ev.target.closest("button"); if (!b || b.disabled) return;
+        var it = e.itens.filter(function (x) { return x[0] === b.dataset.it; })[0];
+        var li = document.getElementById("cl-" + it[0]), certo = +b.dataset.g === it[2];
+        total++; if (certo) acertos++; feitos++;
+        li.querySelectorAll("button").forEach(function (x) {
+          x.disabled = true;
+          if (+x.dataset.g === it[2]) x.classList.add("certa"); else if (x === b) x.classList.add("errada");
+        });
+        li.querySelector(".nota").textContent = certo ? "Certo." : "A resposta é: " + e.grupos[it[2]] + ".";
+        A.evento("resposta", { modulo: m.id, item: it[0], acertou: certo });
+        if (feitos === e.itens.length) document.getElementById("seguir").disabled = false;
+      });
+    }
+
+    function vf(e, topo) {
+      var i = 0;
+      function uma() {
+        var q = e.lista[i];
+        app.innerHTML = topo + '<p class="miudo">Afirmação ' + (i + 1) + ' de ' + e.lista.length + '</p>' +
+          '<article class="receita papel afirma"><p>' + esc(q.p) + '</p></article>' +
+          '<div class="acoes decide"><button class="botao" type="button" id="v" data-r="1">Verdadeiro</button>' +
+          '<button class="botao fantasma" type="button" id="f" data-r="0">Falso</button></div><div id="retorno" aria-live="polite"></div>';
+        app.querySelector(".decide").addEventListener("click", function (ev) {
+          var b = ev.target.closest("button"); if (!b || b.disabled) return;
+          var certo = (b.dataset.r === "1") === q.v;
+          total++; if (certo) acertos++;
+          app.querySelectorAll(".decide button").forEach(function (x) { x.disabled = true; });
+          b.classList.add(certo ? "certa" : "errada");
+          A.evento("resposta", { modulo: m.id, item: q.id, acertou: certo });
+          var ultima = i === e.lista.length - 1;
+          document.getElementById("retorno").innerHTML =
+            '<div class="retorno ' + (certo ? "ok" : "nao") + '"><b>' + (certo ? "Certo." : "Não é bem assim.") + '</b> É ' + (q.v ? "verdadeiro" : "falso") + '. ' + esc(q.e) + '</div>' +
+            '<div class="acoes"><button class="botao" type="button" id="prox">' + (ultima ? "Continuar" : "Próxima afirmação") + '</button></div>';
+          var prox = document.getElementById("prox");
+          prox.onclick = function () { if (ultima) proxima(); else { i++; uma(); focar(); } };
+          prox.focus();
+        });
+      }
+      uma();
+    }
+
+    function ordenar(e, topo) {
+      var ordem = [2, 4, 0, 5, 1, 3].filter(function (n) { return n < e.passos.length; });
+      var conferido = false;
+      function desenhar() {
+        app.innerHTML = topo + '<ol class="ordem">' + ordem.map(function (n, pos) {
+          var marca = conferido ? (n === pos ? " certo" : " errado") : "";
+          return '<li class="' + marca + '"><span class="pos">' + (pos + 1) + '</span><span class="txt">' + esc(e.passos[n]) + '</span>' +
+            (conferido ? "" : '<span class="setas"><button type="button" class="seta" data-p="' + pos + '" data-d="-1" aria-label="Subir: ' + esc(e.passos[n]) + '"' + (pos === 0 ? " disabled" : "") + '>↑</button>' +
+            '<button type="button" class="seta" data-p="' + pos + '" data-d="1" aria-label="Descer: ' + esc(e.passos[n]) + '"' + (pos === ordem.length - 1 ? " disabled" : "") + '>↓</button></span>') + '</li>';
+        }).join("") + '</ol>' +
+          (conferido ? '<div id="retorno"></div>' + botaoSeguir(true) : '<div class="acoes"><button class="botao" type="button" id="conferir">Conferir a ordem</button></div>');
+        if (conferido) {
+          var certos = ordem.filter(function (n, pos) { return n === pos; }).length, tudo = certos === ordem.length;
+          document.getElementById("retorno").innerHTML = '<div class="retorno ' + (tudo ? "ok" : "nao") + '"><b>' + (tudo ? "Ordem certa." : certos + " de " + ordem.length + " na posição certa.") + '</b> ' +
+            (tudo ? "" : "A ordem correta é: " + e.passos.map(function (p, i) { return (i + 1) + ". " + esc(p); }).join("; ") + ".") + '</div>';
+          ligarSeguir();
+        } else {
+          document.getElementById("conferir").onclick = function () {
+            conferido = true;
+            var tudo = ordem.every(function (n, pos) { return n === pos; });
+            total++; if (tudo) acertos++;
+            A.evento("resposta", { modulo: m.id, item: "ordem", acertou: tudo });
+            desenhar();
+          };
+          app.querySelector(".ordem").addEventListener("click", function (ev) {
+            var b = ev.target.closest(".seta"); if (!b || b.disabled) return;
+            var p = +b.dataset.p, d = +b.dataset.d, t = ordem[p];
+            ordem[p] = ordem[p + d]; ordem[p + d] = t;
+            desenhar();
+            var alvo = app.querySelectorAll(".seta")[(p + d) * 2 + (d < 0 ? 0 : 1)];
+            if (alvo && !alvo.disabled) alvo.focus();
+          });
+        }
+      }
+      desenhar();
+    }
+
+    function checklist(e, topo) {
+      var st = ler("dc-pop", {});
+      app.innerHTML = topo + '<div class="barra" aria-hidden="true"><div id="cb"></div></div><p class="miudo" id="ct"></p>' +
+        '<ul class="ck">' + e.itens.map(function (t, n) {
+          return '<li><label for="ck' + n + '"><input type="checkbox" id="ck' + n + '"' + (st[n] ? " checked" : "") + '><span>' + esc(t) + '</span></label></li>';
+        }).join("") + '</ul>' + botaoSeguir(true);
+      function conta() {
+        var d = e.itens.filter(function (_, n) { return st[n]; }).length;
+        document.getElementById("cb").style.width = (d / e.itens.length * 100) + "%";
+        document.getElementById("ct").textContent = d + " de " + e.itens.length + " itens prontos";
+      }
+      app.querySelector(".ck").addEventListener("change", function (ev) { st[ev.target.id.slice(2)] = ev.target.checked; gravar("dc-pop", st); conta(); });
+      conta(); ligarSeguir();
+    }
+
+    function perguntas(e, topo) {
+      var i = 0;
+      function uma() {
+        var q = e.lista[i];
+        app.innerHTML = topo + '<p class="miudo">Pergunta ' + (i + 1) + ' de ' + e.lista.length + '</p>' +
+          '<fieldset class="questao"><legend>' + esc(q.p) + '</legend>' +
+          q.op.map(function (o, n) { return '<button type="button" class="opcao-q" id="op-' + n + '" data-i="' + n + '">' + esc(o) + '</button>'; }).join("") +
+          '</fieldset><div id="retorno" aria-live="polite"></div>';
+        app.querySelector(".questao").addEventListener("click", function (ev) {
+          var b = ev.target.closest(".opcao-q"); if (!b || b.disabled) return;
+          var certo = +b.dataset.i === q.c;
+          total++; if (certo) acertos++;
+          app.querySelectorAll(".opcao-q").forEach(function (x) {
+            x.disabled = true;
+            if (+x.dataset.i === q.c) x.classList.add("certa"); else if (x === b) x.classList.add("errada");
+          });
+          A.evento("resposta", { modulo: m.id, item: q.id, acertou: certo });
+          var ultima = i === e.lista.length - 1;
+          document.getElementById("retorno").innerHTML =
+            '<div class="retorno ' + (certo ? "ok" : "nao") + '"><b>' + (certo ? "Isso mesmo." : "Não é bem assim.") + '</b> ' + esc(q.e) + '</div>' +
+            '<div class="acoes"><button class="botao" type="button" id="prox">' + (ultima ? (k === r.etapas.length - 1 ? "Ver resultado" : "Continuar") : "Próxima pergunta") + '</button></div>';
+          var prox = document.getElementById("prox");
+          prox.onclick = function () { if (ultima) proxima(); else { i++; uma(); focar(); } };
+          prox.focus();
+        });
+      }
+      uma();
+    }
+
+    function fim() {
+      var dur = segundos(t0);
+      salvarProgresso(m.id, { feito: true, acertos: acertos, total: total, em: new Date().toISOString() });
+      A.evento("modulo_fim", { modulo: m.id, valor: acertos + "/" + total, duracao_s: dur });
+      telaFim(m, acertos, total, r.fim);
+    }
+
+    intro();
+  }
+
+  /* ---------- certificado ---------- */
+  function todosFeitos() {
+    return DC.modulos.every(function (m) { return progresso[m.id] && progresso[m.id].feito; });
+  }
+  function telaCertificado() {
+    if (!todosFeitos() && !rapido) { location.hash = "#inicio"; return; }
+    var soma = DC.modulos.reduce(function (s, m) { var p = progresso[m.id] || {}; return [s[0] + (p.acertos || 0), s[1] + (p.total || 0)]; }, [0, 0]);
+    var minutos = DC.modulos.reduce(function (s, m) { return s + m.min; }, 0);
+    var datas = DC.modulos.map(function (m) { return (progresso[m.id] || {}).em; }).filter(Boolean).sort();
+    var data = new Date(datas.length ? datas[datas.length - 1] : Date.now()).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" });
+    app.innerHTML =
+      '<div class="nao-imprime"><p class="trilha"><a href="#inicio">Módulos</a> <span aria-hidden="true">›</span> Certificado</p>' +
+      '<h1>Seu certificado</h1>' +
+      '<label class="campo" for="nome-cert">Nome para o certificado <span class="miudo">(fica só na tela: não é salvo nem enviado)</span></label>' +
+      '<input id="nome-cert" type="text" autocomplete="off" maxlength="80" placeholder="Digite seu nome"></div>' +
+      '<section class="certificado" aria-label="Certificado de conclusão">' +
+        '<img src="img/icone.svg" alt="" width="56" height="56">' +
+        '<p class="cert-tit">Certificado de conclusão</p>' +
+        '<p>Certificamos que</p><p class="cert-nome" id="cert-nome">&nbsp;</p>' +
+        '<p>concluiu os ' + DC.modulos.length + ' módulos do curso <b>Dispensa Certa: SNCR e RDC nº 1.000/2025 na farmácia</b>, com carga estimada de ' + minutos + ' minutos e ' + soma[0] + ' acertos em ' + soma[1] + ' questões.</p>' +
+        '<p class="cert-data">' + esc(data) + '</p>' +
+        '<p class="cert-rodape">Material educativo de autoria de Márcia dos Angeles. Não substitui certificação oficial.</p>' +
+      '</section>' +
+      '<div class="acoes nao-imprime"><button class="botao" type="button" id="imprimir">Imprimir ou salvar em PDF</button><a class="botao fantasma" href="#inicio">Voltar aos módulos</a></div>';
+    var campo = document.getElementById("nome-cert"), alvo = document.getElementById("cert-nome");
+    campo.addEventListener("input", function () { alvo.textContent = campo.value.trim() || " "; });
+    document.getElementById("imprimir").onclick = function () { window.print(); };
+    A.evento("certificado", { valor: soma[0] + "/" + soma[1] });
+    focar();
+  }
+
   /* ---------- fim de módulo e pausa ---------- */
   function telaFim(m, acertos, total, frase) {
     app.innerHTML =
@@ -293,6 +510,8 @@
     var h = (hash === undefined ? location.hash : hash).replace("#", "");
     if (h === "m-triagem") return moduloTriagem();
     if (h === "m-casos") return moduloCasos();
+    if (/^m-(mudancas|regras|acesso|pop)$/.test(h)) return moduloRoteiro(h.slice(2));
+    if (h === "certificado") return telaCertificado();
     if (h && h !== "inicio" && !forcar) { history.replaceState(null, "", location.pathname + location.search + "#inicio"); }
     progresso = ler("dc-progresso", {});
     telaInicio();

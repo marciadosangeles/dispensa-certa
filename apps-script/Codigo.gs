@@ -12,7 +12,7 @@
 
 var ABA = "Registros";
 var COLUNAS = ["data_hora", "evento", "sessao", "modulo", "item", "acertou", "valor", "duracao_s", "aparelho", "tema", "versao"];
-var EVENTOS = ["visita", "modulo_inicio", "modulo_fim", "resposta", "pausa_feita", "pausa_pulada", "linha_teste"];
+var EVENTOS = ["visita", "modulo_inicio", "modulo_fim", "resposta", "pausa_feita", "pausa_pulada", "certificado", "linha_teste"];
 
 function doPost(e) {
   try {
