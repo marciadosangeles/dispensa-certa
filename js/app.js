@@ -644,7 +644,6 @@
   document.addEventListener("dc-registro", diagnostico);
 
   /* ---------- início ---------- */
-  A.contador(document.getElementById("contador"));
   A.iniciar();
   A.evento("visita", { item: location.hash.replace("#", "") || "inicio" });
   diagnostico();

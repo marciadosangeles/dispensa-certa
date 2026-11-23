@@ -161,21 +161,10 @@
     return "enviada";
   }
 
-  /* Contador público de visitas desta página (precisa da opção
-     "Allow adding visitor counts on your website" ativa no GoatCounter). */
-  function contador(el) {
-    if (!el || !cfg.goatcounter || location.protocol === "file:") return;
-    var caminho = location.pathname || "/";
-    var url = "https://" + cfg.goatcounter + ".goatcounter.com/counter/" + encodeURIComponent(caminho) + ".json";
-    fetch(url).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
-      if (d && d.count) el.textContent = "Visitas: " + d.count;
-    }).catch(function () {});
-  }
-
   window.DCAnalytics = {
     modo: modo, local: local, bloqueios: bloqueios, podeEnviar: podeEnviar,
     optOut: optOut, setOptOut: function (v) { setOptOut(v); if (!v) carregarGoatCounter(); },
-    evento: evento, linhaDeTeste: linhaDeTeste, contador: contador,
+    evento: evento, linhaDeTeste: linhaDeTeste,
     registro: function () { return registro; }, config: cfg, iniciar: carregarGoatCounter,
     origem: origem, perfil: perfil
   };

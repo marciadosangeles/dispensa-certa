@@ -61,7 +61,6 @@ Nunca há envio quando o site é aberto como arquivo local (`file://`) ou em `lo
 ## Análise de uso e privacidade
 
 - **GoatCounter** (código `marciadosangeles`, sem cookies) conta as visitas e os eventos `modulo_inicio`, `modulo_fim`, `resposta`, `pausa_feita`, `pausa_pulada` e `certificado`, com os caminhos `dispensa-certa/<evento>/<modulo>`.
-- **Contador do rodapé:** lê `https://marciadosangeles.goatcounter.com/counter/<caminho>.json`. Para funcionar, ative no GoatCounter: *Settings → Allow adding visitor counts on your website*.
 - **Planilha Google:** uma linha por evento, na aba **Registros**.
   - **Eventos:** `visita`, `perfil`, `modulo_inicio`, `resposta`, `abandono`, `modulo_fim`, `pausa_feita`, `pausa_pulada`, `certificado` e `linha_teste`.
   - **Colunas:** `data_hora, evento, sessao, modulo, item, acertou, opcao, tempo_s, etapa, valor, duracao_s, origem, perfil, tipo_farmacia, uf, aparelho, tema, versao`.
